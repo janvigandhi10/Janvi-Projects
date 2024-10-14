@@ -1,0 +1,41 @@
+import pulp
+#Linear integer programming problem
+problem = pulp.LpProblem("AgroHarvest_Profit_Maximization", pulp.LpMaximize)
+
+# Decision Variables
+# x_c: Acres of corn planted
+# x_w: Acres of wheat planted
+# y_r: Units of cornmeal produced
+# y_f: Units of flour produced
+x_c = pulp.LpVariable("x_c", lowBound=0)#Acres of corn
+x_w = pulp.LpVariable("x_w", lowBound=0)#Acres of wheat
+y_r = pulp.LpVariable("y_r", lowBound=0, cat='Integer')#Units of cornmeal
+y_f = pulp.LpVariable("y_f", lowBound=0, cat='Integer')#Units of flour
+
+# Objective Function: Maximize Profit
+profit_corn = 20 * (100 * x_c) #Profit from corn
+profit_wheat = 25 * (60 * x_w)#Profit from wheat
+profit_cornmeal = 250 * y_r#Profit from cornmeal
+profit_flour = 200 * y_f #Profit from flour
+total_profit = profit_corn + profit_wheat + profit_cornmeal + profit_flour
+
+problem += total_profit, "Total_Profit"
+
+#Constraints
+#Land constraint
+problem += x_c + x_w <= 500, "Land_Constraint"
+#Labor hours constraint
+problem += (2 * (x_c + x_w) + 2 * y_r + 1.5 * y_f) <= 8000, "Labor_Constraint"
+#Cornmeal production constraint
+problem += y_r <= (100 * x_c) / 10, "Cornmeal_Production_Constraint"
+#Flour production constraint
+problem += y_f <= (60 * x_w) / 5, "Flour_Production_Constraint"
+#Solve the problem
+problem.solve()
+
+print("Status:", pulp.LpStatus[problem.status])
+print(f"Acres of corn planted: {x_c.varValue}")
+print(f"Acres of wheat planted: {x_w.varValue}")
+print(f"Units of cornmeal produced: {y_r.varValue}")
+print(f"Units of flour produced: {y_f.varValue}")
+print(f"Total Profit: ${pulp.value(problem.objective):.2f}")
